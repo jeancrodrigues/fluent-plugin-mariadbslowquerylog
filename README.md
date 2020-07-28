@@ -4,7 +4,7 @@
 
 ### MySQL Slow Query Log Output
 
-Fluentd plugin to concat MySQL slowquerylog.
+Fluentd plugin to concat MariaDB slowquerylog. Forked from [fluent-plugin-mysqlslowquerylog](https://github.com/studio3104/fluent-plugin-mysqlslowquerylog). Changed to log format for MariaDB version 10.3.
 
 ## Configuration
 
@@ -12,39 +12,45 @@ Input Messages (Slow Query Log)
 ```
 # Time: 130107 11:36:21
 # User@Host: root[root] @ localhost []
+# Thread_id: 16420  Schema: someschema  QC_hit: No
 # Query_time: 0.000378  Lock_time: 0.000111 Rows_sent: 7  Rows_examined: 7
+# Rows_affected: 0  Bytes_sent: 4851
+# Full_scan: Yes  Full_join: Yes  Tmp_table: No  Tmp_table_on_disk: No
+# Filesort: No  Filesort_on_disk: No  Merge_passes: 0  Priority_queue: No
 SET timestamp=1357526181;
 select * from user;
-# Time: 130107 11:38:47
-# User@Host: root[root] @ localhost []
-# Query_time: 0.002142  Lock_time: 0.000166 Rows_sent: 142  Rows_examined: 142
-use information_schema;
-SET timestamp=1357526327;
-select * from INNODB_BUFFER_PAGE_LRU;
 ```
 
 Output Messages
 ```
-2013-01-07T11:36:21+09:00    cocatenated.mysql.slowlog	{"user":"root[root]","host":"localhost","query_time":0.000378,"lock_time":0.000111,"rows_sent":7,"rows_examined":7,"sql":"SET timestamp=1357526181; select * from user;"}
-2013-01-07T11:38:47+09:00	cocatenated.mysql.slowlog	{"user":"root[root]","host":"localhost","query_time":0.002142,"lock_time":0.000166,"rows_sent":142,"rows_examined":142,"sql":"use information_schema; SET timestamp=1357526327; select * from INNODB_BUFFER_PAGE_LRU;"}
+{"user":"root[root]",
+"host":"[127.0.0.1]",
+"thread_id":16420,
+"schema":"someschema",
+"qc_hit":"No",
+"query_time":18.436932,
+"lock_time":4.9e-05,
+"rows_sent":0,
+"rows_examined":849,
+"rows_affected":0,
+"bytes_sent":4851,
+"full_scan":"Yes",
+"full_join":"Yes",
+"temp_table":"No",
+"temp_table_on_disk":"No",
+"filesort":"No",
+"filesort_on_disk":"No",
+"merge_passes":0,
+"priority_queue":"No",
+"sql":"select * from user u;"}
 ```
 
 ### Example Settings
-sender (fluent-agent-lite)
-```
-TAG_PREFIX="mysql"
-LOGS=$(cat <<"EOF"
-slowlog.db01 /var/log/mysql/mysql-slow.log
-EOF
-)
-PRIMARY_SERVER="log_server:24224"
-```
-
 sender (td-agent)
 ```
 <source>
   type tail
-  path   /var/log/mysql/mysql-slow.log
+  path   /var/log/mysql/mariadb-slow.log
   format /^(?<message>.+)$/
   tag    mysql.slowlog.db01
 </source>
@@ -61,9 +67,9 @@ reciever
 </source>
 <match mysql.slowlog.*>
   type mysqlslowquerylog
-  add_tag_prefix cocatenated.
+  add_tag_prefix processed.
 </match>
-<match cocatenated.mysql.slowlog.*>
+<match processed.mysql.slowlog.*>
   type file
   path /tmp/slowtest
 </match>
@@ -71,30 +77,13 @@ reciever
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'fluent-plugin-mysqlslowquerylog'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
+Install it yourself as:
 
     $ gem install fluent-plugin-mysqlslowquerylog
 
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
-
-## Copyright
-
-### Copyright
-Copyright (c) 2012- Satoshi SUZUKI (@studio3104)
+Or if you are using the td-agent install with:
+	
+    $ td-agent-gem install  fluent-plugin-mysqlslowquerylog
 
 ### License
 Apache License, Version 2.0

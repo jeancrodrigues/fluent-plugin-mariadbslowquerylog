@@ -45,7 +45,7 @@ class Fluent::MySQLSlowQueryLogOutput < Fluent::Output
 
   REGEX1 = /^#? User\@Host:\s+(\S+)\s+\@\s+(\S+).*/
   REGEX15 = /^# Thread_id:\s+([0-9.]+)\s+Schema:\s+(\S+)\s+QC_hit:\s+(\S+).*/
-  REGEX2 = /^# Query_time: ([0-9.]+)\s+Lock_time: ([0-9.]+)\s+Rows_sent: ([0-9.]+)\s+Rows_examined: ([0-9.]+).*/
+  REGEX2 = /^# Query_time:\s+([0-9.]+)\s+Lock_time:\s+([0-9.]+)\s+Rows_sent:\s+([0-9.]+)\s+Rows_examined:\s+([0-9.]+).*/
   REGEX3 = /^# Rows_affected:\s+([0-9.]+)\s+Bytes_sent:\s+([0-9.]+).*/
   REGEX4 = /^# Full_scan:\s+(\S+)\s+Full_join:\s+(\S+)\s+Tmp_table:\s+(\S+)\s+Tmp_table_on_disk:\s+(\S+).*/
   REGEX5 = /^# Filesort:\s+(\S+)\s+Filesort_on_disk:\s+(\S+)\s+Merge_passes:\s+([0-9.]+)\s+Priority_queue:\s+(\S+).*/

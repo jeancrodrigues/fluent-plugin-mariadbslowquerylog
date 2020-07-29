@@ -64,49 +64,58 @@ class Fluent::MySQLSlowQueryLogOutput < Fluent::Output
       message = @slowlogs[:"#{tag}"].shift
     end
 
-    message =~ REGEX1
-    record['user'] = $1
-    record['host'] = $2
-    
-    message = @slowlogs[:"#{tag}"].shift
-    message =~ REGEX15
-    #record['r15']    = message
-    record['thread_id']    = $1.to_i
-    record['schema']     = $2
-    record['qc_hit']     = $3
-    
-    message = @slowlogs[:"#{tag}"].shift
-    message =~ REGEX2
-    #record['r2']    = message
-    record['query_time']    = $1.to_f
-    record['lock_time']     = $2.to_f
-    record['rows_sent']     = $3.to_i
-    record['rows_examined'] = $4.to_i
+    if( ( message =~ REGEX1 ) != nil ) 
+      record['user'] = $1
+      record['host'] = $2
+      message = @slowlogs[:"#{tag}"].shift
+    end
 
+    if( ( message =~ REGEX15 ) != nil )
+      #record['r15']    = message
+      record['thread_id']    = $1.to_i
+      record['schema']     = $2
+      record['qc_hit']     = $3
+    
+      message = @slowlogs[:"#{tag}"].shift
+    end
 
-    message = @slowlogs[:"#{tag}"].shift
-    message =~ REGEX3
+    if( ( message =~ REGEX2 ) != nil )
+      #record['r2']    = message
+      record['query_time']    = $1.to_f
+      record['lock_time']     = $2.to_f
+      record['rows_sent']     = $3.to_i
+      record['rows_examined'] = $4.to_i
+    
+      message = @slowlogs[:"#{tag}"].shift
+    end
+
+    if( ( message =~ REGEX3 ) != nil )
     #record['r3']    = message
-    record['rows_affected']    = $1.to_i
-    record['bytes_sent']     = $2.to_i
+      record['rows_affected']    = $1.to_i
+      record['bytes_sent']     = $2.to_i
 
-    message = @slowlogs[:"#{tag}"].shift
-    message =~ REGEX4
-    #record['r4']    = message
-    record['full_scan']    = $1
-    record['full_join']     = $2
-    record['temp_table']     = $3
-    record['temp_table_on_disk'] = $4
+      message = @slowlogs[:"#{tag}"].shift
+    end
 
-    message = @slowlogs[:"#{tag}"].shift
-    message =~ REGEX5
-    #record['r5']    = message
-    record['filesort']    = $1
-    record['filesort_on_disk']  = $2
-    record['merge_passes']     = $3.to_i
-    record['priority_queue'] = $4
+    if( ( message =~ REGEX4 ) != nil )
+      #record['r4']    = message
+      record['full_scan']    = $1
+      record['full_join']     = $2
+      record['temp_table']     = $3
+      record['temp_table_on_disk'] = $4
 
-    record['sql'] = @slowlogs[:"#{tag}"].map {|m| m.strip}.join(' ')
+      message = @slowlogs[:"#{tag}"].shift
+    end
+
+    if( ( message =~ REGEX5 ) != nil )
+      #record['r5']    = message
+      record['filesort']    = $1
+      record['filesort_on_disk']  = $2
+      record['merge_passes']     = $3.to_i
+      record['priority_queue'] = $4
+    end
+
+    record['sql'] = @slowlogs[:"#{tag}"].map {|m| m.strip if !m.strip.start_with?('#') }.join(' ').strip
 
     time = date.to_i if date
     flush_emit(tag, time, record)
